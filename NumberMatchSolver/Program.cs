@@ -7,11 +7,13 @@ const int Blocked = -2;
 
 int[,] board =
 {
-  {9,1,5,7,2,3,1,5,6},
-  {3,2,4,9,6,5,8,7,2},
-  {6,1,7,2,3,1,6,1,4},
-  {7,2,5,4,5,Blocked,Blocked,Blocked,Blocked},
-
+  {4,8,6,8,Cleared,6,5,9,4},
+  {Cleared,5,3,Cleared,5,2,7,2,5},
+  {Cleared,6,8,4,3,Cleared,Cleared,6,7},
+  {5,3,5,9,5,4,8,6,8},
+  {6,5,9,4,5,3,5,2,7},
+  {2,5,6,8,4,3,6,7,5},
+  {3,5,9,5,Cleared,Cleared,Cleared,Cleared,Cleared},
 };
 
 var game = new Game(board);
