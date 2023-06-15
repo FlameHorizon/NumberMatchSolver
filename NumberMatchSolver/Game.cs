@@ -4,22 +4,15 @@ public class Game
 {
   private const int Cleared = -1;
   private const int Blocked = -2;
+  
+  private int LastRowIndex => Board.GetLength(0) - 1;
+  private int LastColumnIndex => Board.GetLength(1) - 1;
 
-  private int[,] _board;
-  private readonly int _lowerRowLimit = 0;
-  private int _upperRowLimit;
-  private int LastRowIndex => _upperRowLimit - 1;
-  private readonly int _lowerColumnLimit = 0;
-  private int _upperColumnLimit;
-  private int LastColumnIndex => _upperColumnLimit - 1;
-
-  public int[,] Board => _board;
+  public int[,] Board { get; private set; }
 
   public Game(int[,] board)
   {
-    _board = board;
-    _upperRowLimit = _board.GetLength(0);
-    _upperColumnLimit = _board.GetLength(1);
+    Board = board;
   }
 
   /// <summary>
@@ -87,17 +80,17 @@ public class Game
 
     while (true)
     {
-      // Boundry checks.
+      // Boundary checks.
       if (inspecting.X > LastRowIndex
-          || inspecting.X < _lowerRowLimit
-          || inspecting.Y >= _upperColumnLimit
-          || inspecting.Y < _lowerColumnLimit)
+          || inspecting.X < 0
+          || inspecting.Y > LastColumnIndex
+          || inspecting.Y < 0)
       {
         found = Cords.Empty;
         return false;
       }
 
-      int inspectValue = _board[inspecting.X, inspecting.Y];
+      int inspectValue = Board[inspecting.X, inspecting.Y];
       if (inspectValue == Cleared)
       {
         inspecting = inspecting.AddOffset(offset);
@@ -124,7 +117,7 @@ public class Game
 
   private int GetValue(Cords cords)
   {
-    return _board[cords.X, cords.Y];
+    return Board[cords.X, cords.Y];
   }
 
   private bool SearchLinearTop(Cords start, out Cords found)
@@ -161,24 +154,24 @@ public class Game
 
     while (true)
     {
-      if (inspecting.X >= _upperRowLimit || inspecting.X < _lowerRowLimit)
+      if (inspecting.X > LastRowIndex || inspecting.X < 0)
       {
         found = Cords.Empty;
         return false;
       }
 
-      if (inspecting.Y >= _upperColumnLimit || inspecting.Y < _lowerColumnLimit)
+      if (inspecting.Y > LastColumnIndex || inspecting.Y < 0)
       {
         inspecting = direction switch
         {
           Direction.Right => new Cords() { X = inspecting.X + 1, Y = 0 },
-          _ => new Cords() { X = inspecting.X - 1, Y = _upperColumnLimit - 1 }
+          _ => new Cords() { X = inspecting.X - 1, Y = LastColumnIndex }
         };
 
         continue;
       }
 
-      int inspectValue = _board[inspecting.X, inspecting.Y];
+      int inspectValue = Board[inspecting.X, inspecting.Y];
       if (inspectValue == Cleared)
       {
         inspecting = inspecting.AddOffset(offset);
@@ -242,8 +235,8 @@ public class Game
 
   private void RemoveClearedRows()
   {
-    int rowsToRemove = 0;
-    for (int i = 0; i < _board.GetLength(0); i++)
+    var rowsToRemove = 0;
+    for (var i = 0; i <= LastRowIndex; i++)
     {
       int[] row = GetRow(i);
       if (row.All(x => x == Cleared || x == Blocked))
@@ -258,46 +251,45 @@ public class Game
       return;
     }
 
-    // Create new array with smaller size.
-    int newRowsCount = _board.GetLength(0) - rowsToRemove;
-    int currentRow = 0;
-    int[,] array = new int[newRowsCount, _upperColumnLimit];
+    // Create new array with smaller size
+    // and fill it with content.
+    int newRowsCount = Board.GetLength(0) - rowsToRemove;
+    var currentRowIndex = 0;
+    var array = new int[newRowsCount, LastColumnIndex + 1];
 
-    for (int i = 0; i < _board.GetLength(0); i++)
+    for (var i = 0; i <= LastRowIndex; i++)
     {
       int[] row = GetRow(i);
       if (row.Any(x => x is >= 1 and <= 9))
       {
-        for (int j = 0; j < _upperColumnLimit; j++)
+        for (var j = 0; j <= LastColumnIndex; j++)
         {
-          array[currentRow, j] = _board[i, j];
+          array[currentRowIndex, j] = Board[i, j];
         }
 
-        currentRow++;
+        currentRowIndex++;
       }
     }
 
-    _board = array;
-    _upperRowLimit = _board.GetLength(0);
-    _upperColumnLimit = _board.GetLength(1);
+    Board = array;
   }
 
   private void Clear(Cords cords)
   {
-    _board[cords.X, cords.Y] = Cleared;
+    Board[cords.X, cords.Y] = Cleared;
   }
 
   internal void PrintBoard()
   {
-    if (_board.GetLength(0) == 0)
+    if (Board.GetLength(0) == 0)
     {
       Console.WriteLine("Board has been cleared.");
       return;
     }
 
-    for (int i = 0; i < _board.GetLength(0); i++)
+    for (var rowIndex = 0; rowIndex < Board.GetLength(0); rowIndex++)
     {
-      string row = string.Join(',', GetRow(i));
+      string row = string.Join(',', GetRow(rowIndex));
       row = row.Replace("-1", "#").Replace("-2", "*");
 
       Console.WriteLine(row);
@@ -308,8 +300,8 @@ public class Game
 
   private int[] GetRow(int rowNumber)
   {
-    return Enumerable.Range(0, _board.GetLength(1))
-      .Select(x => _board[rowNumber, x])
+    return Enumerable.Range(0, Board.GetLength(1))
+      .Select(x => Board[rowNumber, x])
       .ToArray();
   }
 
@@ -318,21 +310,18 @@ public class Game
     // Console.WriteLine("Printing initial state");
     // PrintBoard();
 
-    int currentRowIndex = 0;
-    int currentColumnIndex = 0;
+    var currentRowIndex = 0;
+    var currentColumnIndex = 0;
 
-    while (true)
+    // If we went over last row, that means we are done with this board and we can leave.
+    while (currentRowIndex <= LastRowIndex)
     {
+      // Go to next row when we are over the last column.
       if (currentColumnIndex > LastColumnIndex)
       {
         currentRowIndex++;
         currentColumnIndex = 0;
-      }
-
-      // If we went over last row, that means we are done with this board and we can leave.
-      if (currentRowIndex > LastRowIndex)
-      {
-        break;
+        continue;
       }
 
       Cords start = new() { X = currentRowIndex, Y = currentColumnIndex };
@@ -363,13 +352,13 @@ public class Game
 
   public void PrintCopyableBoard()
   {
-    if (_board.GetLength(0) == 0)
+    if (Board.GetLength(0) == 0)
     {
       Console.WriteLine("Board has been cleared.");
       return;
     }
 
-    for (int i = 0; i < _board.GetLength(0); i++)
+    for (var i = 0; i < Board.GetLength(0); i++)
     {
       string row = "{" + string.Join(',', GetRow(i)) + "},";
       row = row.Replace("-1", "Cleared").Replace("-2", "Blocked");
@@ -397,7 +386,7 @@ public class Cords
 
   private Cords AddOffset(int x, int y)
   {
-    return new Cords() { X = this.X + x, Y = this.Y + y };
+    return new Cords() { X = X + x, Y = Y + y };
   }
 
   public Cords AddOffset(Cords cords)
