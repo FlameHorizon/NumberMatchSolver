@@ -1,7 +1,10 @@
+using NumberMatchSolver.SearchStrategies;
+
 namespace NumberMatchSolver;
 
 public class Game
 {
+  private readonly IFindCellStrategy _findCellStrategy;
   private const int Cleared = -1;
   private const int Blocked = -2;
 
@@ -10,9 +13,14 @@ public class Game
 
   public int[,] Board { get; private set; }
 
-  public Game(int[,] board)
+  public Game(int[,] board) : this(board, new LinearThenDiagonalSearchStrategy())
+  {
+  }
+
+  public Game(int[,] board, IFindCellStrategy strategy)
   {
     Board = board;
+    _findCellStrategy = strategy;
   }
 
   /// <summary>
@@ -24,199 +32,13 @@ public class Game
   /// return Cords.Empty.</returns>
   private Cell SearchForPair(Cell start)
   {
-    if (SearchLinearRight(start, out Cell found)
-        || SearchLinearLeft(start, out found)
-        || SearchLinearTop(start, out found)
-        || SearchLinearBottom(start, out found)
-        || SearchDiagonalTopLeft(start, out found)
-        || SearchDiagonalTopRight(start, out found)
-        || SearchDiagonalBottomLeft(start, out found)
-        || SearchDiagonalBottomRight(start, out found))
-    {
-      return found;
-    }
-    else
-    {
-      return Cell.Empty;
-    }
+    Cell found = _findCellStrategy.FindPair(Board, start);
+    return found;
   }
-
-  private bool SearchDiagonalBottomRight(Cell start, out Cell found)
-  {
-    return SearchDiagonal(start, out found, Direction.BottomRight);
-  }
-
-  private bool SearchDiagonalBottomLeft(Cell start, out Cell found)
-  {
-    return SearchDiagonal(start, out found, Direction.BottomLeft);
-  }
-
-  private bool SearchDiagonalTopRight(Cell start, out Cell found)
-  {
-    return SearchDiagonal(start, out found, Direction.TopRight);
-  }
-
-  private bool SearchDiagonalTopLeft(Cell start, out Cell found)
-  {
-    return SearchDiagonal(start, out found, Direction.TopLeft);
-  }
-
-  private bool SearchDiagonal(Cell start, out Cell found, Direction direction)
-  {
-    if (GetValue(start) == Cleared || GetValue(start) == Blocked)
-    {
-      found = Cell.Empty;
-      return false;
-    }
-
-    Cell offset = direction switch
-    {
-      Direction.TopLeft => new Cell { Row = -1, Column = -1 },
-      Direction.TopRight => new Cell { Row = 1, Column = -1 },
-      Direction.BottomLeft => new Cell { Row = -1, Column = 1 },
-      _ => new Cell { Row = 1, Column = 1 }
-    };
-    Cell inspecting = start.AddOffset(offset);
-
-    while (true)
-    {
-      // Boundary checks.
-      if (inspecting.Row > LastRowIndex
-          || inspecting.Row < 0
-          || inspecting.Column > LastColumnIndex
-          || inspecting.Column < 0)
-      {
-        found = Cell.Empty;
-        return false;
-      }
-
-      int inspectValue = Board[inspecting.Row, inspecting.Column];
-      if (inspectValue == Cleared)
-      {
-        inspecting = inspecting.AddOffset(offset);
-        continue;
-      }
-
-      if (inspectValue == Blocked)
-      {
-        found = Cell.Empty;
-        return false;
-      }
-
-      if (Enumerable.Range(1, 10).Contains(inspectValue))
-      {
-        return CompareValues(start, inspecting, out found);
-      }
-    }
-  }
-
-  private bool SearchLinearBottom(Cell start, out Cell found)
-  {
-    return SearchLinear(start, out found, Direction.Bottom);
-  }
-
+  
   private int GetValue(Cell cell)
   {
     return Board[cell.Row, cell.Column];
-  }
-
-  private bool SearchLinearTop(Cell start, out Cell found)
-  {
-    return SearchLinear(start, out found, Direction.Top);
-  }
-
-  private bool SearchLinearLeft(Cell start, out Cell found)
-  {
-    return SearchLinear(start, out found, Direction.Left);
-  }
-
-  private bool SearchLinearRight(Cell start, out Cell found)
-  {
-    return SearchLinear(start, out found, Direction.Right);
-  }
-
-  private bool SearchLinear(Cell start, out Cell found, Direction direction)
-  {
-    if (GetValue(start) == Cleared || GetValue(start) == Blocked)
-    {
-      found = Cell.Empty;
-      return false;
-    }
-
-    Cell offset = direction switch
-    {
-      Direction.Right => new Cell { Row = 0, Column = 1 },
-      Direction.Left => new Cell { Row = 0, Column = -1 },
-      Direction.Top => new Cell { Row = -1, Column = 0 },
-      _ => new Cell { Row = 1, Column = 0 },
-    };
-    Cell inspecting = start.AddOffset(offset);
-
-    while (true)
-    {
-      if (inspecting.Row > LastRowIndex || inspecting.Row < 0)
-      {
-        found = Cell.Empty;
-        return false;
-      }
-
-      if (inspecting.Column > LastColumnIndex || inspecting.Column < 0)
-      {
-        inspecting = direction switch
-        {
-          Direction.Right => new Cell() { Row = inspecting.Row + 1, Column = 0 },
-          _ => new Cell() { Row = inspecting.Row - 1, Column = LastColumnIndex }
-        };
-
-        continue;
-      }
-
-      int inspectValue = Board[inspecting.Row, inspecting.Column];
-      if (inspectValue == Cleared)
-      {
-        inspecting = inspecting.AddOffset(offset);
-        continue;
-      }
-
-      if (inspectValue == Blocked)
-      {
-        found = Cell.Empty;
-        return false;
-      }
-
-      if (Enumerable.Range(1, 10).Contains(inspectValue))
-      {
-        return CompareValues(start, inspecting, out found);
-      }
-    }
-  }
-
-  private enum Direction
-  {
-    Left,
-    Right,
-    Top,
-    Bottom,
-    TopLeft,
-    TopRight,
-    BottomLeft,
-    BottomRight
-  }
-
-  private bool CompareValues(Cell start, Cell inspecting, out Cell found)
-  {
-    int startValue = GetValue(start);
-    int inspectValue = GetValue(inspecting);
-    if (startValue + inspectValue == 10 || startValue == inspectValue)
-    {
-      found = inspecting;
-      return true;
-    }
-    else
-    {
-      found = Cell.Empty;
-      return false;
-    }
   }
 
   /// <summary>
@@ -581,27 +403,7 @@ public class Game
   }
 }
 
-public class Cell
+public interface IFindCellStrategy
 {
-  public static readonly Cell Empty = new() { Row = int.MinValue, Column = int.MinValue };
-
-  /// <summary>
-  /// Row.
-  /// </summary>
-  public int Row { get; init; }
-
-  /// <summary>
-  /// Column
-  /// </summary>
-  public int Column { get; init; }
-
-  private Cell AddOffset(int x, int y)
-  {
-    return new Cell() { Row = Row + x, Column = Column + y };
-  }
-
-  public Cell AddOffset(Cell cell)
-  {
-    return AddOffset(cell.Row, cell.Column);
-  }
+  Cell FindPair(int[,] board, Cell start);
 }
