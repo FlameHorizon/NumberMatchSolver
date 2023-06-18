@@ -37,14 +37,7 @@ public class SolverTests
     var sut = new Game(board);
     sut.Solve();
 
-    int[,] expected =
-    {
-      { 8, 5, 2, 7, 1, Cleared, 6, 3, 5 },
-      { 7, 4, 9, 5, 6, Cleared, 2, 1, 4 },
-      { Cleared, 5, 7, 8, 9, Cleared, Cleared, 7, 5 },
-      { Cleared, 4, 1, 6, 5, Blocked, Blocked, Blocked, Blocked },
-    };
-    sut.Board.Should().Equal(expected, (i, i1) => i == i1);
+    sut.Board.Length.Should().Be(0);
   }
 
   [Fact]
@@ -64,13 +57,7 @@ public class SolverTests
     var sut = new Game(board);
     sut.Solve();
 
-    int[,] expected =
-    {
-      { Cleared, Cleared, Cleared, Cleared, Cleared, Cleared, Cleared, 1, Cleared },
-      { Cleared, Cleared, Cleared, Cleared, Cleared, Cleared, Cleared, Cleared, 5 },
-      { 4, 1, 6, 5, Blocked, Blocked, Blocked, Blocked, Blocked },
-    };
-    sut.Board.Should().Equal(expected, (i, i1) => i == i1);
+    sut.Board.Length.Should().Be(0);
   }
 
   [Fact]
@@ -87,12 +74,7 @@ public class SolverTests
     var sut = new Game(board);
     sut.Solve();
 
-    int[,] expected =
-    {
-      { Cleared, Cleared, Cleared, Cleared, Cleared, Cleared, Cleared, Cleared, 5 },
-      { 4, 1, 6, 5, 1, Cleared, Cleared, Cleared, Cleared },
-    };
-    sut.Board.Should().Equal(expected, (i, i1) => i == i1);
+    sut.Board.Length.Should().Be(0);
   }
 
   [Fact]
