@@ -16,8 +16,9 @@ int[,] board =
 var linear = new LinearThenDiagonalSearchStrategy();
 var diagonal = new DiagonalThenLinearSearchStrategy();
 
-var leftToRight = new LeftToRightMoveStrategy(board);
+var leftToRight = new LeftToRightMoveStrategy(board, 1, 1);
 
 var game = new Game(board, linear, leftToRight);
 game.Solve();
+List<(int, (int row, int column))> result = game.ExhaustiveSearch();
 game.PrintCopyableBoard();

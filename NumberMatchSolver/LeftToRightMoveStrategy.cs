@@ -6,9 +6,15 @@ public class LeftToRightMoveStrategy : IMoveStrategy
   private int LastRowIndex => _board.GetLength(0) - 1;
   private int LastColumnIndex => _board.GetLength(1) - 1;
 
-  public LeftToRightMoveStrategy(int[,] board)
+  public LeftToRightMoveStrategy(int[,] board) : this (board, 0,0)
+  {
+  }
+
+  public LeftToRightMoveStrategy(int[,] board, int startColumnIndex = 0, int startRowIndex = 0)
   {
     _board = board;
+    CurrentColumnIndex = startColumnIndex;
+    CurrentRowIndex = startRowIndex;
   }
   
   public void RegisterPairFound()

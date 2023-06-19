@@ -18,7 +18,8 @@ public class Game
   {
   }
 
-  public Game(int[,] board, IFindCellStrategy findCellStrategy) : this(board, findCellStrategy, new LeftToRightMoveStrategy(board))
+  public Game(int[,] board, IFindCellStrategy findCellStrategy) : this(board, findCellStrategy,
+    new LeftToRightMoveStrategy(board))
   {
   }
 
@@ -27,6 +28,99 @@ public class Game
     Board = board;
     _findCellFindCellStrategy = findCellStrategy;
     _moveStrategy = moveStrategy;
+  }
+
+  /// <summary> 
+  /// Main loop solver.
+  /// Goes through each cell and searches for a pair.
+  /// If pair is found, it is cleared and loop starts over.
+  /// </summary>
+  /// <returns>Number of points collected throughout the solving process.</returns>
+  public int Solve()
+  {
+    // Console.WriteLine("Printing initial state");
+    // PrintBoard();
+
+    var appendMoreRowsCounter = 5;
+    var totalPoints = 0;
+
+    // If we went over last row, that means we are done with this board and we can leave.
+    while (true)
+    {
+      if (_moveStrategy.ReachedLastRow())
+      {
+        if (Board.GetLength(0) >= 1 && appendMoreRowsCounter > 0)
+        {
+          AppendRows();
+          appendMoreRowsCounter--;
+
+          _moveStrategy.UpdateBoard(Board);
+          _moveStrategy.RegisterOutOfBoundsRow();
+        }
+        else
+        {
+          Console.WriteLine("Board has been cleared.");
+          break;
+        }
+      }
+
+      // Go to next row when we are over the last column.
+      if (_moveStrategy.ReachedLastColumn())
+      {
+        _moveStrategy.RegisterOutOfBoundsColumn();
+        continue;
+      }
+
+      Cell? start = _moveStrategy.NextCell();
+      Cell found = _findCellFindCellStrategy.FindPair(Board, start);
+
+      // If nothing was found, go to next cell.
+      if (found == Cell.Empty)
+      {
+        _moveStrategy.RegisterPairNotFound();
+        continue;
+      }
+      else
+      {
+        _moveStrategy.RegisterPairFound();
+      }
+
+      int points = CalculatePoints(start, found);
+      totalPoints += points;
+
+      Console.WriteLine(
+        $"Cell (R{start.Row + 1}, C{start.Column + 1}) [{GetValue(start)}] can be matched with " +
+        $"cell (R{found.Row + 1}, C{found.Column + 1}) [{GetValue(found)}]. Points {points}. " +
+        $"Total points {totalPoints}");
+
+      ClearPair(start, found);
+      _moveStrategy.UpdateBoard(Board);
+
+      //PrintBoard();
+    }
+
+    return totalPoints;
+
+    // Console.WriteLine("Printing final state");
+    // PrintBoard();
+  }
+  
+  public List<(int, (int row, int column))> ExhaustiveSearch()
+  {
+    // Start at each cell on the board and gather information how many points
+    // each run will collect. Prioritize highest score.
+    List<(int, (int row, int column))> result = new();
+    for (var row = 0; row < LastRowIndex; row++)
+    {
+      for (var column = 0; column < LastColumnIndex; column++)
+      {
+        _moveStrategy.CurrentRowIndex = row;
+        _moveStrategy.CurrentColumnIndex = column;
+        result.Add((Solve(), (row, column)));
+      }
+    }
+
+    return result;
   }
 
   private int GetValue(Cell cell)
@@ -125,76 +219,6 @@ public class Game
     return Enumerable.Range(0, array.GetLength(1))
       .Select(x => array[rowNumber, x])
       .ToArray();
-  }
-
-
-  /// <summary> 
-  /// Main loop solver.
-  /// Goes through each cell and searches for a pair.
-  /// If pair is found, it is cleared and loop starts over.
-  /// </summary>
-  public void Solve()
-  {
-    // Console.WriteLine("Printing initial state");
-    // PrintBoard();
-    
-    var appendMoreRowsCounter = 5;
-
-    // If we went over last row, that means we are done with this board and we can leave.
-    while (true)
-    {
-      if (_moveStrategy.ReachedLastRow())
-      {
-        if (Board.GetLength(0) >= 1 && appendMoreRowsCounter > 0)
-        {
-          AppendRows();
-          appendMoreRowsCounter--;
-          
-          _moveStrategy.UpdateBoard(Board);
-          _moveStrategy.RegisterOutOfBoundsRow();
-        }
-        else
-        {
-          Console.WriteLine("Board has been cleared.");
-          break;
-        }
-      }
-
-      // Go to next row when we are over the last column.
-      if (_moveStrategy.ReachedLastColumn())
-      {
-        _moveStrategy.RegisterOutOfBoundsColumn();
-        continue;
-      }
-      
-      Cell? start = _moveStrategy.NextCell();
-      Cell found = _findCellFindCellStrategy.FindPair(Board, start);
-
-      // If nothing was found, go to next cell.
-      if (found == Cell.Empty)
-      {
-        _moveStrategy.RegisterPairNotFound();
-        continue;
-      }
-      else
-      {
-        _moveStrategy.RegisterPairFound();
-      }
-
-      int points = CalculatePoints(start, found);
-
-      Console.WriteLine(
-        $"Cell (R{start.Row + 1}, C{start.Column + 1}) [{GetValue(start)}] can be matched with " +
-        $"cell (R{found.Row + 1}, C{found.Column + 1}) [{GetValue(found)}]. Points {points}");
-
-      ClearPair(start, found);
-      _moveStrategy.UpdateBoard(Board);
-      
-      //PrintBoard();
-    }
-
-    // Console.WriteLine("Printing final state");
-    // PrintBoard();
   }
 
   private void AppendRows()
