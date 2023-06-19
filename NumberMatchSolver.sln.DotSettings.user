@@ -1,7 +1,8 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 	<s:String x:Key="/Default/CodeInspection/PencilsConfiguration/ActualSeverity/@EntryValue">SUGGESTION</s:String>
-	<s:String x:Key="/Default/Environment/Highlighting/HighlightingSourceSnapshotLocation/@EntryValue">/home/maciej/.cache/JetBrains/Rider2023.1/resharper-host/temp/Rider/vAny/CoverageData/_NumberMatchSolver.1521392432/Snapshot/snapshot.utdcvr</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=8ea2f1c5_002D5e5a_002D40f4_002D8cd4_002D6198bca8ddf1/@EntryIndexedValue">&lt;SessionState ContinuousTestingIsOn="True" ContinuousTestingMode="3" IsActive="True" Name="CalculatePointsForEqualValueSeparatedByEmptyCells1" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+	<s:String x:Key="/Default/Environment/Highlighting/HighlightingSourceSnapshotLocation/@EntryValue">/home/maciej/.cache/JetBrains/Rider2023.1/resharper-host/temp/Rider/vAny/CoverageData/_NumberMatchSolver.-1947463307/Snapshot/snapshot.utdcvr</s:String>
+	
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=8ea2f1c5_002D5e5a_002D40f4_002D8cd4_002D6198bca8ddf1/@EntryIndexedValue">&lt;SessionState ContinuousTestingIsOn="True" ContinuousTestingMode="1" IsActive="True" Name="CalculatePointsForEqualValueSeparatedByEmptyCells1" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;TestAncestor&gt;
     &lt;TestId&gt;xUnit::8E571920-0B8A-483D-A1C9-C4656C86779A::net6.0::NumberMatchSolver.Tests.SolverTests.CalculatePointsForClearingTheBoard&lt;/TestId&gt;
     &lt;TestId&gt;xUnit::8E571920-0B8A-483D-A1C9-C4656C86779A::net6.0::NumberMatchSolver.Tests.SolverTests.CalculatePointsForDeletingALineOfNumbers1&lt;/TestId&gt;

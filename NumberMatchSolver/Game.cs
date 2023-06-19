@@ -4,7 +4,8 @@ namespace NumberMatchSolver;
 
 public class Game
 {
-  private readonly IFindCellStrategy _findCellStrategy;
+  private readonly IFindCellStrategy _findCellFindCellStrategy;
+  private readonly IMoveStrategy _moveStrategy;
   private const int Cleared = -1;
   private const int Blocked = -2;
 
@@ -13,27 +14,19 @@ public class Game
 
   public int[,] Board { get; private set; }
 
-  public Game(int[,] board) : this(board, new LinearThenDiagonalSearchStrategy())
+  public Game(int[,] board) : this(board, new LinearThenDiagonalSearchStrategy(), new LeftToRightMoveStrategy(board))
   {
   }
 
-  public Game(int[,] board, IFindCellStrategy strategy)
+  public Game(int[,] board, IFindCellStrategy findCellStrategy) : this(board, findCellStrategy, new LeftToRightMoveStrategy(board))
+  {
+  }
+
+  public Game(int[,] board, IFindCellStrategy findCellStrategy, IMoveStrategy moveStrategy)
   {
     Board = board;
-    _findCellStrategy = strategy;
-  }
-
-  /// <summary>
-  /// Searches for either the same value as in start or
-  /// for value where sum of two is ten.
-  /// </summary>
-  /// <param name="start">Search start location.</param>
-  /// <returns>Location where pair was found. If pair wasn't found
-  /// return Cords.Empty.</returns>
-  private Cell SearchForPair(Cell start)
-  {
-    Cell found = _findCellStrategy.FindPair(Board, start);
-    return found;
+    _findCellFindCellStrategy = findCellStrategy;
+    _moveStrategy = moveStrategy;
   }
 
   private int GetValue(Cell cell)
@@ -140,58 +133,52 @@ public class Game
   /// Goes through each cell and searches for a pair.
   /// If pair is found, it is cleared and loop starts over.
   /// </summary>
-
   public void Solve()
   {
     // Console.WriteLine("Printing initial state");
     // PrintBoard();
-
-    var currentRowIndex = 0;
-    var currentColumnIndex = 0;
-    var appedMoreRowsCounter = 5;
+    
+    var appendMoreRowsCounter = 5;
 
     // If we went over last row, that means we are done with this board and we can leave.
     while (true)
     {
-      if (currentRowIndex > LastRowIndex)
+      if (_moveStrategy.ReachedLastRow())
       {
-        if (Board.GetLength(0) >= 1 && appedMoreRowsCounter > 0)
+        if (Board.GetLength(0) >= 1 && appendMoreRowsCounter > 0)
         {
-          System.Console.WriteLine($"We have {Board.GetLength(0)} " +
-            $"rows and {appedMoreRowsCounter} more appends. Append...");
-
-          PrintBoard();
-
-          appedMoreRowsCounter--;
           AppendRows();
-
-          currentColumnIndex = 0;
-          currentRowIndex = 0;
-
+          appendMoreRowsCounter--;
+          
+          _moveStrategy.UpdateBoard(Board);
+          _moveStrategy.RegisterOutOfBoundsRow();
         }
         else
         {
-          System.Console.WriteLine("Board has been cleared.");
+          Console.WriteLine("Board has been cleared.");
           break;
         }
       }
 
       // Go to next row when we are over the last column.
-      if (currentColumnIndex > LastColumnIndex)
+      if (_moveStrategy.ReachedLastColumn())
       {
-        currentRowIndex++;
-        currentColumnIndex = 0;
+        _moveStrategy.RegisterOutOfBoundsColumn();
         continue;
       }
-
-      Cell start = new() { Row = currentRowIndex, Column = currentColumnIndex };
-      Cell found = SearchForPair(start);
+      
+      Cell? start = _moveStrategy.NextCell();
+      Cell found = _findCellFindCellStrategy.FindPair(Board, start);
 
       // If nothing was found, go to next cell.
       if (found == Cell.Empty)
       {
-        currentColumnIndex++;
+        _moveStrategy.RegisterPairNotFound();
         continue;
+      }
+      else
+      {
+        _moveStrategy.RegisterPairFound();
       }
 
       int points = CalculatePoints(start, found);
@@ -201,12 +188,8 @@ public class Game
         $"cell (R{found.Row + 1}, C{found.Column + 1}) [{GetValue(found)}]. Points {points}");
 
       ClearPair(start, found);
-
-      currentColumnIndex = 0;
-      currentRowIndex = 0;
-
-
-
+      _moveStrategy.UpdateBoard(Board);
+      
       //PrintBoard();
     }
 
@@ -221,13 +204,13 @@ public class Game
     // Number of values between 1 and 9 - number of blocked cells / number of columns
 
     int notClearedCellsCount = Board.Cast<int>().Where(x => x is >= 1 and <= 9).Count();
-    System.Console.WriteLine($"Not cleared cells count: {notClearedCellsCount}");
+    Console.WriteLine($"Not cleared cells count: {notClearedCellsCount}");
 
     int blockedCells = Board.Cast<int>().Count(x => x == Blocked);
     int columns = Board.GetLength(1);
 
-    int newRowsCount = (9+(notClearedCellsCount - blockedCells)) / columns;
-    System.Console.WriteLine($"Adding {newRowsCount} rows.");
+    int newRowsCount = (9 + (notClearedCellsCount - blockedCells)) / columns;
+    Console.WriteLine($"Adding {newRowsCount} rows.");
 
     int[,] newBoard = new int[Board.GetLength(0) + newRowsCount, Board.GetLength(1)];
 
@@ -249,12 +232,12 @@ public class Game
       }
     }
 
-    System.Console.WriteLine($"Last row index: {LastRowIndex}");
+    Console.WriteLine($"Last row index: {LastRowIndex}");
 
     // Append them to the board.
     int[] lastRow = GetRow(Board, LastRowIndex);
-    
-    System.Console.WriteLine($"Last row: {string.Join(',', lastRow)}");
+
+    Console.WriteLine($"Last row: {string.Join(',', lastRow)}");
 
     int row;
     int column;
@@ -267,7 +250,7 @@ public class Game
     }
     else
     {
-      System.Console.WriteLine($"Found first blocked index at {firstBlockedIndex}");
+      Console.WriteLine($"Found first blocked index at {firstBlockedIndex}");
       row = LastRowIndex;
       column = firstBlockedIndex;
     }
@@ -275,10 +258,10 @@ public class Game
     // Copy all values from the board which aren't blocked or cleared.
     IEnumerable<int> values = Board.Cast<int>().Where(x => x != Blocked && x != Cleared);
 
-    System.Console.WriteLine("Appending new rows...");
+    Console.WriteLine("Appending new rows...");
     foreach (int value in values)
     {
-      System.Console.WriteLine($"Appending value {value} to row {row} and column {column}");
+      //Console.WriteLine($"Appending value {value} to row {row} and column {column}");
       newBoard[row, column] = value;
 
       column++;
@@ -296,7 +279,6 @@ public class Game
 
     Board = newBoard;
     PrintBoard();
-
   }
 
   public int CalculatePoints(Cell start, Cell found)
@@ -503,11 +485,11 @@ public class Game
 
   public void PrintCopyableBoard()
   {
-    if (Board.GetLength(0) == 0)
-    {
-      Console.WriteLine("Board has been cleared.");
-      return;
-    }
+    // if (Board.GetLength(0) == 0)
+    // {
+    //   Console.WriteLine("Board has been cleared.");
+    //   return;
+    // }
 
     for (var i = 0; i < Board.GetLength(0); i++)
     {
@@ -523,5 +505,13 @@ public class Game
 
 public interface IFindCellStrategy
 {
+  /// <summary>
+  /// Searches for either the same value as in start or
+  /// for value where sum of two is ten.
+  /// </summary>
+  /// <param name="board">State of the board</param>
+  /// <param name="start">Search start location.</param>
+  /// <returns>Location where pair was found. If pair wasn't found
+  /// return Cords.Empty.</returns>
   Cell FindPair(int[,] board, Cell start);
 }
