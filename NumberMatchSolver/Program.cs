@@ -8,17 +8,30 @@ const int Blocked = -2;
 
 int[,] board =
 {
-  { Cleared, Cleared, Cleared, Cleared, Cleared, Cleared, 7, Cleared, 5 },
-  { 1, 5, 7, Cleared, Cleared, Cleared, 1, 7, 5 },
-  { 1, 5, 7, 1, Blocked, Blocked, Blocked, Blocked, Blocked },
+  { 8, 5, 2, 7, 1, Cleared, 6, 3, 5 },
+  { 7, 4, 9, 5, 6, Cleared, 2, 1, 4 },
+  { Cleared, 5, 7, 8, 9, Cleared, Cleared, 7, 5 },
+  { Cleared, 4, 1, 6, 5, 8, 5, 2, 7 },
+  { 1, 6, 3, 5, 7, 4, 9, 5, 6 },
+  { 2, 1, 4, 5, 7, 8, 9, 7, 5 },
+  { 4, 1, 6, 5, Blocked, Blocked, Blocked, Blocked, Blocked },
 };
 
 var linear = new LinearThenDiagonalSearchStrategy();
 var diagonal = new DiagonalThenLinearSearchStrategy();
+List<(int startRow, int startColumn, List<(int points, (Cell cell1, Cell cell2))> mvs)> moves = new();
+for (var row = 0; row < board.GetLength(0) - 1; row++)
+{
+  for (var column = 0; column < board.GetLength(1) - 1; column++)
+  {
+    var leftToRight = new LeftToRightMoveStrategy(board, column, row);
+    var complete = new CompleteMoveStrategy(board);
 
-var leftToRight = new LeftToRightMoveStrategy(board, 1, 1);
+    var game = new Game(board, linear, leftToRight);
+    moves.Add((row, column, game.Solve()));
+  }
+}
 
-var game = new Game(board, linear, leftToRight);
-game.Solve();
-List<(int, (int row, int column))> result = game.ExhaustiveSearch();
-game.PrintCopyableBoard();
+Console.WriteLine($"Most points {moves.MaxBy(x => x.mvs.Sum(y => y.points)).mvs.Sum((y => y.points))}. " +
+                  $"Start row {moves.MaxBy(x => x.mvs.Max(y => y.points)).startRow}, " +
+                  $"Start column {moves.MaxBy(x => x.mvs.Max(y => y.points)).startColumn}");

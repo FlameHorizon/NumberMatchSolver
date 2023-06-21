@@ -35,14 +35,14 @@ public class Game
   /// Goes through each cell and searches for a pair.
   /// If pair is found, it is cleared and loop starts over.
   /// </summary>
-  /// <returns>Number of points collected throughout the solving process.</returns>
-  public int Solve()
+  /// <returns>Returns a list of moves .</returns>
+  public List<(int points, (Cell cell1, Cell cell2))> Solve()
   {
     // Console.WriteLine("Printing initial state");
     // PrintBoard();
 
+    List<(int points, (Cell cell1, Cell cell2))> result = new();
     var appendMoreRowsCounter = 5;
-    var totalPoints = 0;
 
     // If we went over last row, that means we are done with this board and we can leave.
     while (true)
@@ -84,14 +84,14 @@ public class Game
       {
         _moveStrategy.RegisterPairFound();
       }
-
+      
       int points = CalculatePoints(start, found);
-      totalPoints += points;
+      result.Add((points, (start, found)));
 
       Console.WriteLine(
         $"Cell (R{start.Row + 1}, C{start.Column + 1}) [{GetValue(start)}] can be matched with " +
         $"cell (R{found.Row + 1}, C{found.Column + 1}) [{GetValue(found)}]. Points {points}. " +
-        $"Total points {totalPoints}");
+        $"Total points {result.Sum(x => x.points)}");
 
       ClearPair(start, found);
       _moveStrategy.UpdateBoard(Board);
@@ -99,17 +99,17 @@ public class Game
       //PrintBoard();
     }
 
-    return totalPoints;
+    return result;
 
     // Console.WriteLine("Printing final state");
     // PrintBoard();
   }
   
-  public List<(int, (int row, int column))> ExhaustiveSearch()
+  public List<(List<(int points, (Cell cell1, Cell cell2))>, (int row, int column))> ExhaustiveSearch()
   {
     // Start at each cell on the board and gather information how many points
     // each run will collect. Prioritize highest score.
-    List<(int, (int row, int column))> result = new();
+    List<(List<(int points, (Cell cell1, Cell cell2))>, (int row, int column))> result = new();
     for (var row = 0; row < LastRowIndex; row++)
     {
       for (var column = 0; column < LastColumnIndex; column++)
