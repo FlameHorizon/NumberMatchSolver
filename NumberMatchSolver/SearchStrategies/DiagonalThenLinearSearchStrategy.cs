@@ -10,6 +10,46 @@ public class DiagonalThenLinearSearchStrategy : IFindCellStrategy
 
   private int[,] Board { get; set; }
 
+  public List<Cell> FindAllPairs(int[,] board, Cell start)
+  {
+    Board = board;
+    List<Cell> results = new();
+    if (SearchDiagonalTopLeft(start, out Cell found))
+    {
+      results.Add(found);
+    }
+    if (SearchDiagonalTopRight(start, out found))
+    {
+      results.Add(found);
+    }
+    if (SearchDiagonalBottomLeft(start, out found))
+    {
+      results.Add(found);
+    }
+    if (SearchDiagonalBottomRight(start, out found))
+    {
+      results.Add(found);
+    }
+    if (SearchLinearRight(start, out found))
+    {
+      results.Add(found);
+    }
+    if (SearchLinearLeft(start, out found))
+    {
+      results.Add(found);
+    }
+    if (SearchLinearTop(start, out found))
+    {
+      results.Add(found);
+    }
+    if (SearchLinearBottom(start, out found))
+    {
+      results.Add(found);
+    }
+
+    return results.DistinctBy(x => x.Column).DistinctBy(x => x.Row).ToList();
+  }
+
   public Cell FindPair(int[,] board, Cell start)
   {
     Board = board;
@@ -62,8 +102,8 @@ public class DiagonalThenLinearSearchStrategy : IFindCellStrategy
     Cell offset = direction switch
     {
       Direction.TopLeft => new Cell { Row = -1, Column = -1 },
-      Direction.TopRight => new Cell { Row = 1, Column = -1 },
-      Direction.BottomLeft => new Cell { Row = -1, Column = 1 },
+      Direction.TopRight => new Cell { Row = -1, Column = 1 },
+      Direction.BottomLeft => new Cell { Row = 1, Column = -1 },
       _ => new Cell { Row = 1, Column = 1 }
     };
     Cell inspecting = start.AddOffset(offset);
