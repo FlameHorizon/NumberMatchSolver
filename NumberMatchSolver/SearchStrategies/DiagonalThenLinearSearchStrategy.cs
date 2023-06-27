@@ -10,44 +10,52 @@ public class DiagonalThenLinearSearchStrategy : IFindCellStrategy
 
   private int[,] Board { get; set; }
 
-  public List<Cell> FindAllPairs(int[,] board, Cell start)
+  public List<Pair> FindAllPairs(int[,] board, Cell start)
   {
     Board = board;
-    List<Cell> results = new();
+    List<Pair> results = new();
     if (SearchDiagonalTopLeft(start, out Cell found))
     {
-      results.Add(found);
-    }
-    if (SearchDiagonalTopRight(start, out found))
-    {
-      results.Add(found);
-    }
-    if (SearchDiagonalBottomLeft(start, out found))
-    {
-      results.Add(found);
-    }
-    if (SearchDiagonalBottomRight(start, out found))
-    {
-      results.Add(found);
-    }
-    if (SearchLinearRight(start, out found))
-    {
-      results.Add(found);
-    }
-    if (SearchLinearLeft(start, out found))
-    {
-      results.Add(found);
-    }
-    if (SearchLinearTop(start, out found))
-    {
-      results.Add(found);
-    }
-    if (SearchLinearBottom(start, out found))
-    {
-      results.Add(found);
+      results.Add(new Pair() {Start = start, End = found});
     }
 
-    return results.DistinctBy(x => x.Column).DistinctBy(x => x.Row).ToList();
+    if (SearchDiagonalTopRight(start, out found))
+    {
+      results.Add(new Pair() {Start = start, End = found});
+    }
+
+    if (SearchDiagonalBottomLeft(start, out found))
+    {
+      results.Add(new Pair() {Start = start, End = found});
+    }
+
+    if (SearchDiagonalBottomRight(start, out found))
+    {
+      results.Add(new Pair() {Start = start, End = found});
+    }
+
+    if (SearchLinearRight(start, out found))
+    {
+      results.Add(new Pair() {Start = start, End = found});
+    }
+
+    if (SearchLinearLeft(start, out found))
+    {
+      results.Add(new Pair() {Start = start, End = found});
+    }
+
+    if (SearchLinearTop(start, out found))
+    {
+      results.Add(new Pair() {Start = start, End = found});
+    }
+
+    if (SearchLinearBottom(start, out found))
+    {
+      results.Add(new Pair() {Start = start, End = found});
+    }
+
+    var distinct = results.ToList();
+    return distinct;
   }
 
   public Cell FindPair(int[,] board, Cell start)
@@ -235,5 +243,32 @@ public class DiagonalThenLinearSearchStrategy : IFindCellStrategy
   private int GetValue(Cell cell)
   {
     return Board[cell.Row, cell.Column];
+  }
+}
+
+public class Pair : IEquatable<Pair>
+{
+  public Cell Start { get; set; }
+  public Cell End { get; set; }
+
+  public bool Equals(Pair? other)
+  {
+    if (ReferenceEquals(null, other)) return false;
+    if (ReferenceEquals(this, other)) return true;
+    return Start.Equals(other.Start) && End.Equals(other.End)
+           || Start.Equals(other.End) && End.Equals(other.Start);
+  }
+
+  public override bool Equals(object? obj)
+  {
+    if (ReferenceEquals(null, obj)) return false;
+    if (ReferenceEquals(this, obj)) return true;
+    if (obj.GetType() != this.GetType()) return false;
+    return Equals((Pair)obj);
+  }
+
+  public override int GetHashCode()
+  {
+    return HashCode.Combine(Start, End);
   }
 }

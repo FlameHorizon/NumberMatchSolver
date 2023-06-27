@@ -84,7 +84,7 @@ public class Game
       {
         _moveStrategy.RegisterPairFound();
       }
-      
+
       int points = CalculatePoints(start, found);
       result.Add((points, (start, found)));
 
@@ -104,7 +104,7 @@ public class Game
     // Console.WriteLine("Printing final state");
     // PrintBoard();
   }
-  
+
   public List<(List<(int points, (Cell cell1, Cell cell2))>, (int row, int column))> ExhaustiveSearch()
   {
     // Start at each cell on the board and gather information how many points
@@ -214,7 +214,7 @@ public class Game
       .ToArray();
   }
 
-  private int[] GetRow(int[,] array, int rowNumber)
+  private static int[] GetRow(int[,] array, int rowNumber)
   {
     return Enumerable.Range(0, array.GetLength(1))
       .Select(x => array[rowNumber, x])
@@ -307,17 +307,22 @@ public class Game
 
   public int CalculatePoints(Cell start, Cell found)
   {
-    if (WouldClearBoard(start, found))
+    return CalculatePoints((Board.Clone() as int[,])!, start, found);
+  }
+
+  public static int CalculatePoints(int[,] board, Cell start, Cell found)
+  {
+    if (WouldClearBoard(board, start, found))
     {
       return 150;
     }
 
-    if (WouldClearTwoLines(start, found))
+    if (WouldClearTwoLines(board, start, found))
     {
       return 20;
     }
 
-    if (WouldClearEntireLine(start, found))
+    if (WouldClearEntireLine(board, start, found))
     {
       return 10;
     }
@@ -327,17 +332,18 @@ public class Game
     {
       return 1;
     }
-
-    if (start.Column == 0 && found.Column == LastColumnIndex && start.Row != found.Row)
+    
+    int lastColumnIndex = board.GetLength(1) - 1;
+    if (start.Column == 0 && found.Column == lastColumnIndex && start.Row != found.Row)
     {
       return 2;
     }
-    else if (start.Column == LastColumnIndex && found.Column == 0 && start.Row != found.Row)
+    else if (start.Column == lastColumnIndex && found.Column == 0 && start.Row != found.Row)
     {
       return 2;
     }
 
-    if (IsClearedInBetween(start, found))
+    if (IsClearedInBetween(board, start, found))
     {
       return 4;
     }
@@ -345,15 +351,16 @@ public class Game
     return 150;
   }
 
-  private bool WouldClearBoard(Cell start, Cell found)
+  private static bool WouldClearBoard(int[,] board, Cell start, Cell found)
   {
-    var boardCopy = Board.Clone() as int[,];
+    int[,] boardCopy = board;
+    int lastRowIndex = boardCopy.GetLength(0) - 1;
 
     boardCopy![start.Row, start.Column] = Cleared;
     boardCopy[found.Row, found.Column] = Cleared;
 
     // check if all rows don't have any numeric values.
-    for (var i = 0; i <= LastRowIndex; i++)
+    for (var i = 0; i <= lastRowIndex; i++)
     {
       if (GetRow(boardCopy, i).Any(x => x is >= 1 and <= 9))
       {
@@ -364,12 +371,17 @@ public class Game
     return true;
   }
 
-  private bool WouldClearTwoLines(Cell start, Cell found)
+  private static bool WouldClearTwoLines(int[,] board, Cell start, Cell found)
   {
-    int[] row1 = GetRow(start.Row);
+    if (start.Row == found.Row)
+    {
+      return false;
+    }
+    
+    int[] row1 = GetRow(board, start.Row);
     row1[start.Column] = Cleared;
 
-    int[] row2 = GetRow(found.Row);
+    int[] row2 = GetRow(board, found.Row);
     row2[found.Column] = Cleared;
 
     if (row1.All(x => x < 0) && row2.All(x => x < 0))
@@ -380,11 +392,11 @@ public class Game
     return false;
   }
 
-  private bool WouldClearEntireLine(Cell start, Cell found)
+  private static bool WouldClearEntireLine(int[,] board, Cell start, Cell found)
   {
     if (start.Row == found.Row)
     {
-      int[] row = GetRow(start.Row);
+      int[] row = GetRow(board, start.Row);
       row[start.Column] = Cleared;
       row[found.Column] = Cleared;
 
@@ -397,8 +409,10 @@ public class Game
     return false;
   }
 
-  private bool IsClearedInBetween(Cell start, Cell found)
-  {
+  private static bool IsClearedInBetween(int[,] board, Cell start, Cell found)
+  { 
+    int lastColumnIndex = board.GetLength(1) - 1;
+    
     // First we have to find out if we are going towards left or right.
     if (found.Row < start.Row)
     {
@@ -409,13 +423,13 @@ public class Game
       while (found != inspecting)
       {
         inspecting = inspecting.AddOffset(offset);
-        if (inspecting.Column > LastColumnIndex || inspecting.Column < 0)
+        if (inspecting.Column > lastColumnIndex || inspecting.Column < 0)
         {
-          inspecting = new Cell() { Row = inspecting.Row - 1, Column = LastColumnIndex };
+          inspecting = new Cell() { Row = inspecting.Row - 1, Column = lastColumnIndex };
           continue;
         }
 
-        int inspectValue = Board[inspecting.Row, inspecting.Column];
+        int inspectValue = board[inspecting.Row, inspecting.Column];
         if (inspectValue == Cleared)
         {
           // we found empty cell, we can leave and award 4 points.
@@ -436,13 +450,13 @@ public class Game
       while (found != inspecting)
       {
         inspecting = inspecting.AddOffset(offset);
-        if (inspecting.Column > LastColumnIndex || inspecting.Column < 0)
+        if (inspecting.Column > lastColumnIndex || inspecting.Column < 0)
         {
           inspecting = new Cell() { Row = inspecting.Row + 1, Column = 0 };
           continue;
         }
 
-        int inspectValue = Board[inspecting.Row, inspecting.Column];
+        int inspectValue = board[inspecting.Row, inspecting.Column];
         if (inspectValue == Cleared)
         {
           // we found empty cell, we can leave and award 4 points.
@@ -464,13 +478,13 @@ public class Game
       while (found != inspecting)
       {
         inspecting = inspecting.AddOffset(offset);
-        if (inspecting.Column > LastColumnIndex || inspecting.Column < 0)
+        if (inspecting.Column > lastColumnIndex || inspecting.Column < 0)
         {
           inspecting = new Cell() { Row = inspecting.Row + 1, Column = 0 };
           continue;
         }
 
-        int inspectValue = Board[inspecting.Row, inspecting.Column];
+        int inspectValue = board[inspecting.Row, inspecting.Column];
         if (inspectValue == Cleared)
         {
           // we found empty cell, we can leave and award 4 points.
@@ -489,13 +503,13 @@ public class Game
       while (found != inspecting)
       {
         inspecting = inspecting.AddOffset(offset);
-        if (inspecting.Column > LastColumnIndex || inspecting.Column < 0)
+        if (inspecting.Column > lastColumnIndex || inspecting.Column < 0)
         {
-          inspecting = new Cell() { Row = inspecting.Row - 1, Column = LastColumnIndex };
+          inspecting = new Cell() { Row = inspecting.Row - 1, Column = lastColumnIndex };
           continue;
         }
 
-        int inspectValue = Board[inspecting.Row, inspecting.Column];
+        int inspectValue = board[inspecting.Row, inspecting.Column];
         if (inspectValue == Cleared)
         {
           // we found empty cell, we can leave and award 4 points.
@@ -506,6 +520,7 @@ public class Game
       return false;
     }
   }
+
 
   public void PrintCopyableBoard()
   {
