@@ -8,6 +8,7 @@ const int Blocked = -2;
 
 int[,] board =
 {
+<<<<<<< HEAD
   { 8, 5, 2, 7, 1, Cleared, 6, 3, 5 },
   { 7, 4, 9, 5, 6, Cleared, 2, 1, 4 },
   { Cleared, 5, 7, 8, 9, Cleared, Cleared, 7, 5 },
@@ -15,6 +16,12 @@ int[,] board =
   { 1, 6, 3, 5, 7, 4, 9, 5, 6 },
   { 2, 1, 4, 5, 7, 8, 9, 7, 5 },
   { 4, 1, 6, 5, Blocked, Blocked, Blocked, Blocked, Blocked },
+=======
+  { 5,9,8,4,5,3,2,7,8 },
+  {2,5,3,9,8,7,1,4,1},
+  {6,9,8,6,5,4,5,7,5},
+  {7,5,3,9,7,Blocked,Blocked,Blocked,Blocked}
+>>>>>>> fc4ca58 (Updates)
 };
 
 Node? root = new(new MoveInfo() { Board = board, Cell1 = Cell.Empty, Cell2 = Cell.Empty });

@@ -221,6 +221,128 @@ public class Game
       .ToArray();
   }
 
+<<<<<<< HEAD
+=======
+
+  /// <summary> 
+  /// Main loop solver.
+  /// Goes through each cell and searches for a pair.
+  /// If pair is found, it is cleared and loop starts over.
+  /// </summary>
+
+  public void Solve()
+  {
+    // Console.WriteLine("Printing initial state");
+    // PrintBoard();
+
+    var currentRowIndex = 0;
+    var currentColumnIndex = 0;
+    var appedMoreRowsCounter = 5;
+
+    // If we went over last row, that means we are done with this board and we can leave.
+    while (true)
+    {
+      if (currentRowIndex > LastRowIndex)
+      {
+        if (Board.GetLength(0) >= 1 && appedMoreRowsCounter > 0)
+        {
+          System.Console.WriteLine($"We have {Board.GetLength(0)} " +
+            $"rows and {appedMoreRowsCounter} more row appends. Appending...");
+
+          // PrintBoard();
+
+          appedMoreRowsCounter--;
+          AppendRows();
+
+          currentColumnIndex = 0;
+          currentRowIndex = 0;
+
+        }
+        else
+        {
+          System.Console.WriteLine("Board has been cleared.");
+          break;
+        }
+      }
+
+      // Go to next row when we are over the last column.
+      if (currentColumnIndex > LastColumnIndex)
+      {
+        currentRowIndex++;
+        currentColumnIndex = 0;
+        continue;
+      }
+
+      Cell start = new() { Row = currentRowIndex, Column = currentColumnIndex };
+      Cell found = SearchForPair(start);
+
+      // If nothing was found, go to next cell.
+      if (found == Cell.Empty)
+      {
+        currentColumnIndex++;
+        continue;
+      }
+
+      int points = CalculatePoints(start, found);
+
+      Console.WriteLine(
+        $"Cell (R{start.Row + 1}, C{start.Column + 1}) [{GetValue(start)}] can be matched with " +
+        $"cell (R{found.Row + 1}, C{found.Column + 1}) [{GetValue(found)}]. Points {points} " +
+        $"Direction: {GetDirection(start, found)}");
+
+      ClearPair(start, found);
+
+      currentColumnIndex = 0;
+      currentRowIndex = 0;
+
+      //PrintBoard();
+    }
+
+    // Console.WriteLine("Printing final state");
+    // PrintBoard();
+  }
+
+  private string GetDirection(Cell start, Cell found)
+  {
+    (int x, int y) vector = (start.Column - found.Column, start.Row - found.Row);
+    string direction = string.Empty;
+    if (vector.x <= -1 && vector.y == 0)
+    {
+      direction = "→";
+    }
+    else if (vector.x >= 1 && vector.y == 0)
+    {
+      direction = "←";
+    }
+    else if (vector.x == 0 && vector.y >= 1)
+    {
+      direction = "↑";
+    }
+    else if (vector.x == 0 && vector.y <= -1)
+    {
+      direction = "↓";
+    }
+    else if (vector.x <= -1 && vector.y <= -1)
+    {
+      direction = "↘";
+    }
+    else if (vector.x <= -1 && vector.y >= 1)
+    {
+      direction = "↗";
+    }
+    else if (vector.x >= 1 && vector.y >= 1)
+    {
+      direction = "↖";
+    }
+    else
+    {
+      direction = "↙";
+    }
+
+    return direction;
+  }
+
+>>>>>>> fc4ca58 (Updates)
   private void AppendRows()
   {
     // We have to find out how many new rows we do need to add.
@@ -228,13 +350,19 @@ public class Game
     // Number of values between 1 and 9 - number of blocked cells / number of columns
 
     int notClearedCellsCount = Board.Cast<int>().Where(x => x is >= 1 and <= 9).Count();
+<<<<<<< HEAD
     Console.WriteLine($"Not cleared cells count: {notClearedCellsCount}");
+=======
+>>>>>>> fc4ca58 (Updates)
 
     int blockedCells = Board.Cast<int>().Count(x => x == Blocked);
     int columns = Board.GetLength(1);
 
     int newRowsCount = (9 + (notClearedCellsCount - blockedCells)) / columns;
+<<<<<<< HEAD
     Console.WriteLine($"Adding {newRowsCount} rows.");
+=======
+>>>>>>> fc4ca58 (Updates)
 
     int[,] newBoard = new int[Board.GetLength(0) + newRowsCount, Board.GetLength(1)];
 
@@ -256,12 +384,17 @@ public class Game
       }
     }
 
+<<<<<<< HEAD
     Console.WriteLine($"Last row index: {LastRowIndex}");
 
     // Append them to the board.
     int[] lastRow = GetRow(Board, LastRowIndex);
 
     Console.WriteLine($"Last row: {string.Join(',', lastRow)}");
+=======
+    // Append them to the board.
+    int[] lastRow = GetRow(Board, LastRowIndex);
+>>>>>>> fc4ca58 (Updates)
 
     int row;
     int column;
@@ -274,7 +407,10 @@ public class Game
     }
     else
     {
+<<<<<<< HEAD
       Console.WriteLine($"Found first blocked index at {firstBlockedIndex}");
+=======
+>>>>>>> fc4ca58 (Updates)
       row = LastRowIndex;
       column = firstBlockedIndex;
     }
@@ -282,10 +418,15 @@ public class Game
     // Copy all values from the board which aren't blocked or cleared.
     IEnumerable<int> values = Board.Cast<int>().Where(x => x != Blocked && x != Cleared);
 
+<<<<<<< HEAD
     Console.WriteLine("Appending new rows...");
     foreach (int value in values)
     {
       //Console.WriteLine($"Appending value {value} to row {row} and column {column}");
+=======
+    foreach (int value in values)
+    {
+>>>>>>> fc4ca58 (Updates)
       newBoard[row, column] = value;
 
       column++;
@@ -302,7 +443,12 @@ public class Game
     }
 
     Board = newBoard;
+<<<<<<< HEAD
     PrintBoard();
+=======
+    // PrintBoard();
+
+>>>>>>> fc4ca58 (Updates)
   }
 
   public int CalculatePoints(Cell start, Cell found)
